@@ -1,4 +1,6 @@
 %% SCRIPT_4_ET_TA: 
+
+%% Description
 % Handle vertices and compute
 % GC and MC for Euler's Theorem ET (Watanabe & Belyaev, 2001)
 % GC and MC for Tensor Approach TA (Taubin, 1995)

@@ -1,5 +1,9 @@
 %% SCRIPT_3: 
-%  Handle vertices and the computation of GC and MC (Dyn; Meyer) 
+
+%% Description
+% Handle vertices and compute
+% GC and MC for the Gauss-Bonnet schemes GB1, GB2 
+% (Dyn et al 2002; Meyer et al 2002) 
 
 
 
@@ -7,11 +11,11 @@
 % Angular defect
 V_AD=zeros(nr_vf,2);
 % GAUSSIAN CURVATURE
-V_GC_1=zeros(nr_vf, 1); % GC 1: Dyn et al 2002
-V_GC_2=zeros(nr_vf, 1); % GC 2: Meyer et al 2002
+V_GC_1=zeros(nr_vf, 1); % GB1: Dyn et al 2002
+V_GC_2=zeros(nr_vf, 1); % GB2: Meyer et al 2002
 % MEAN CURVATURE
-V_MC_1=zeros(nr_vf,1); % MC 1: Dyn et al 2002
-V_MC_2=zeros(nr_vf,1); % MC 2: Meyer et al 2002
+V_MC_1=zeros(nr_vf,1); % GB1: Dyn et al 2002
+V_MC_2=zeros(nr_vf,1); % GB2: Meyer et al 2002
 
 %% Main loop
 

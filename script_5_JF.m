@@ -1,4 +1,6 @@
 %% SCRIPT_5_JF: 
+
+%% Description
 % Implementation of the Jet Fitting Approach (Cazals & Pouget, 2008) 
 
 %% Initialization
