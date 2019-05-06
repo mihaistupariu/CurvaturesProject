@@ -1,4 +1,12 @@
+%% Description 
+% This is the GUI for computing/comparing curvatures methods for triangle
+% meshes. It calls several functions / scripts. 
+% July 2013 - May 2019, Mihai-Sorin Stupariu (all scripts / functions)
+
 function varargout = main_GUI(varargin)
+
+
+%
 % MAIN_GUI MATLAB code for main_GUI.fig
 %      MAIN_GUI, by itself, creates a new MAIN_GUI or raises the existing
 %      singleton*.
@@ -22,7 +30,7 @@ function varargout = main_GUI(varargin)
 
 % Edit the above text to modify the response to help main_GUI
 
-% Last Modified by GUIDE v2.5 01-May-2019 14:45:56
+% Last Modified by GUIDE v2.5 06-May-2019 15:02:46
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -97,6 +105,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
+% Initialize some variables used later
 handles.dataType=1;
 handles.alphaVector=[];
 handles.alphaIndexGraph=0;
@@ -109,6 +118,8 @@ handles.boolAlphaGraph=0;
 handles.descriptor='correlation';
 handles.ylabel='Correlation coefficient';
 handles.methodCAE='_GC';
+handles.Az=-159; 
+handles.Elev=12;
 guidata (hObject, handles);
  
 %% THE INPUT DATA BLOCK
@@ -132,7 +143,7 @@ set(handles.Console, 'string', 'The input file was read.');
 guidata (hObject, handles);
 
 %--------------------------------
-% Choose limits (x, y)
+% Read the limits (x, y)
 %--------------------------------
 
 function Value_xMin_Callback(hObject, eventdata, handles)
@@ -148,7 +159,6 @@ handles.Value_xMin=str2double(get(hObject,'String'));
 set(handles.Console, 'string', ['xMin=' get(hObject,'String')]);
 guidata(hObject, handles);
 
-
 % --- Executes during object creation, after setting all properties.
 function Value_xMin_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to Value_xMin (see GCBO)
@@ -160,6 +170,7 @@ function Value_xMin_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
 
 function Value_xMax_Callback(hObject, eventdata, handles)
 % hObject    handle to Value_xMax (see GCBO)
@@ -207,7 +218,6 @@ function Value_yMin_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
 
 
 function Value_yMax_Callback(hObject, eventdata, handles)
@@ -269,7 +279,6 @@ handles.levelResol=transpose(sort(levelResol_aux));
 set(handles.Console, 'string', ['The levels of resolution are ', mat2str(handles.levelResol)]);
 guidata(hObject, handles);
 
-
 % --- Executes during object creation, after setting all properties.
 function Values_Resolutions_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to Values_Resolutions (see GCBO)
@@ -282,10 +291,10 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
+
 %--------------------------------
 % The alpha values (Integral Approach)
 %--------------------------------
-
 
 function Values_IA_alpha_Callback(hObject, eventdata, handles)
 % hObject    handle to Values_IA_alpha (see GCBO)
@@ -306,7 +315,6 @@ handles.alphaVector=transpose(alphaVector_aux);
 [~,handles.nrAlphas]=size(handles.alphaVector);
 set(handles.Console, 'string', ['The alpha-values are ', mat2str(handles.alphaVector)]);
 guidata(hObject, handles);
-
 
 
 % --- Executes during object creation, after setting all properties.
@@ -333,7 +341,6 @@ function WriteToFile_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to WriteToFile (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
-
 
 % --- Executes when selected object is changed in WriteToFile.
 function WriteToFile_SelectionChangedFcn(hObject, eventdata, handles)
@@ -823,7 +830,7 @@ end
 if handles.typeDrawCurvature==2;
     handles.vecCol=handles.MC(:,handles.indexDrawCurvature);
 end
-generateGraphicsCurvature (handles.regGrid, handles.vecCol);
+generateGraphicsCurvature (handles.regGrid, handles.vecCol, handles.Az, handles.Elev);
 guidata(hObject, handles);        
 
 % --- Executes during object creation, after setting all properties.
@@ -882,7 +889,7 @@ end
 if handles.typeDrawCurvature==2;
     handles.vecCol=handles.MC(:,handles.indexDrawCurvature);
 end
-generateGraphicsCurvature (handles.regGrid, handles.vecCol);
+generateGraphicsCurvature (handles.regGrid, handles.vecCol, handles.Az, handles.Elev);
 guidata(hObject, handles);
  
 
@@ -1064,3 +1071,67 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
  
+
+%--------------------------------
+% Parameters for 3D view
+%--------------------------------
+
+function Value_Az_Callback(hObject, eventdata, handles)
+% hObject    handle to Value_Az (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Value_Az as text
+%        str2double(get(hObject,'String')) returns contents of Value_Az as a double
+read_az=get(hObject,'String');
+if isempty(read_az)
+    handles.Az=-159;
+else
+    az_aux_char=textscan(get(hObject,'String'),'%f');
+    handles.Az=cell2mat(az_aux_char);
+end
+generateGraphicsCurvature (handles.regGrid, handles.vecCol, handles.Az, handles.Elev);
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function Value_Az_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Value_Az (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function Value_Elev_Callback(hObject, eventdata, handles)
+% hObject    handle to Value_Elev (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Value_Elev as text
+%        str2double(get(hObject,'String')) returns contents of Value_Elev as a double
+read_elev=get(hObject,'String');
+if isempty(read_elev)
+    handles.Elev=12;
+else
+    elev_aux_char=textscan(get(hObject,'String'),'%f');
+    handles.Elev=cell2mat(elev_aux_char);
+end
+generateGraphicsCurvature (handles.regGrid, handles.vecCol, handles.Az, handles.Elev);
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function Value_Elev_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Value_Elev (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
