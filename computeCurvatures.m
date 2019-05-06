@@ -17,7 +17,10 @@ function [mat_Gaussian_curvatures, mat_Mean_curvatures, vert_CH] = computeCurvat
 %   vert_CH: vertices situated on the border of the convex hull
 
 
-%% Main steps - the computations are performed in the scripts
+%% Main steps 
+% The computations are performed in the scripts. The variables (column
+% vectors) corresponding to various methods are generated in the scripts
+
 % get topological information
 script_0
 vert_CH=V_convexhull;
