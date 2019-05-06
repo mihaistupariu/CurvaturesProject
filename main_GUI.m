@@ -917,17 +917,20 @@ function Value_Alpha_Graphics_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of Value_Alpha_Graphics as text
 %        str2double(get(hObject,'String')) returns contents of Value_Alpha_Graphics as a double
-alphaValueGraph_char=textscan(get(hObject,'String'),'%f');
-alphaValueGraph=cell2mat(alphaValueGraph_char);
-alphaVector=handles.alphaVector;
-[~,nrAlphas]=size(alphaVector);
-for ii=1:nrAlphas
-    if alphaVector(1,ii)==alphaValueGraph
-        handles.alphaIndexGraph=ii;
-        handles.boolAlphaGraph=1;
+read_alpha_graph=get(hObject,'String');
+if isempty (read_alpha_graph)   
+else
+    alphaValueGraph_char=textscan(read_alpha_graph,'%f');
+    alphaValueGraph=cell2mat(alphaValueGraph_char);
+    alphaVector=handles.alphaVector;
+    [~,nrAlphas]=size(alphaVector);
+    for ii=1:nrAlphas
+        if alphaVector(1,ii)==alphaValueGraph
+            handles.alphaIndexGraph=ii;
+            handles.boolAlphaGraph=1;
+        end
     end
 end
- 
 guidata(hObject, handles);
 
 
