@@ -22,9 +22,9 @@ function [mat_2nrVf, mat_2vf, mat_2nrTr, mat_2tr, mat_2nrEdges, mat_2edges] =...
 mat_2nrVf=zeros(nrVf,1); % number of vertices in the 2-RN, per vertex
 mat_2nrTr=zeros(nrVf,1); % number of triangles in the 2-RN, per vertex
 mat_2nrEdges=zeros(nrVf,1); % number of edges in the 2-RN, per vertex
-mat_2vf_aux=zeros(nrVf,nrVf); % vertices in the 2-RN, per vertex
-mat_2tri_aux=zeros(nrVf,nrTri); % triangles in the 2-RN, per vertex
-mat_2edges_aux=zeros(nrVf,nrEdges); % edges in the 2-RN, per vertex
+mat_2vf_aux=zeros(nrVf,1000); % vertices in the 2-RN, per vertex
+mat_2tri_aux=zeros(nrVf,1000); % triangles in the 2-RN, per vertex
+mat_2edges_aux=zeros(nrVf,1000); % edges in the 2-RN, per vertex
 
 %% Determine the vertices in the 2-Ring that are not in the 1-Ring
 maxNrVec=0; % maximal number of neighbours
@@ -54,6 +54,7 @@ for vv=1:nrVf % take all vertices
 end  
 mat_2vf=mat_2vf_aux(1:nrVf,1:maxNrVec);
 
+disp(maxNrVec)
 %% Determine the triangles in the 2-Ring that are not in the 1-Ring
 maxNrVec=0; %maximal number of neighbours
 for vv=1:nrVf % take all vertices
@@ -79,6 +80,8 @@ for vv=1:nrVf % take all vertices
     end
 end
 mat_2tr=mat_2tri_aux(1:nrVf,1:maxNrVec);
+
+disp(maxNrVec)
 
 %% Determine the edges in the 2_ring that are not in the 1-Ring
 maxNrVec=0; %maximal number of neighbours
@@ -106,5 +109,7 @@ for vv=1:nrVf
     end
 end
 mat_2edges=mat_2edges_aux(1:nrVf,1:maxNrVec);
+disp(maxNrVec)
 end
+
 
