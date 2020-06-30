@@ -1,4 +1,4 @@
-function [ ] = generateGraphicsCorrelations(mat_data, vect_resol, mat_methods, vect_alphas)
+function [ ] = generateGraphicsCorrelations(bool_noise, mat_data, vect_resol, mat_methods, vect_alphas, draw_figure)
 
 %% Description
 % Provides the graphical representation for the relationship between metrics,
@@ -69,7 +69,12 @@ columnRef=sum_aux+1;
 mat_data(:,columnRef)=[];
 
 %% Plot the data
+
 hold off
+if draw_figure==1
+    figure
+    title('Curvature');
+end
 [nr_levels_resolution, nr_represented_methods]=size(mat_data);
 x=transpose(1:nr_levels_resolution);
 y=mat_data;
@@ -85,9 +90,14 @@ for ii=1:nr_represented_methods
   p2(ii).Color=mat_colors(ii,:);  
 end
 warning off
-set(gca,'XTick',1:nr_represented_methods,'XTickLabels', vect_resol);
+
+set(gca,'XTick',1:nr_levels_resolution,'XTickLabels', vect_resol);
 leg=legend(mat_legend);
+if (bool_noise==0)
 xlabel('Level of resolution');
+else
+xlabel('(x,y,z)-fractions of noise');    
+end
 
 end
 

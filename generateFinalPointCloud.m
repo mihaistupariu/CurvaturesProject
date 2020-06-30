@@ -23,29 +23,31 @@ function [pc_Output, reg_Grid]= generateFinalPointCloud (pc_Input, cell_Size, x_
     linkPointCloudToRaster(pc_Input, cell_Size, x_Min, x_Max, y_Min, y_Max);
 
 % Find additional points needed and fill the gaps
-[additionalPoints, nrAddPoints]=fillGaps(reg_Grid, ptsInCell, x_Min_Final,y_Max_Final, cell_Size);
+meanVal=mean(pc_Input(:,3));
+[additionalPoints, nrAddPoints]=fillGaps(reg_Grid, ptsInCell, x_Min_Final,y_Max_Final, cell_Size,meanVal);
 [nrVfAux,~]=size(pcIntermediate);
 pcIntermediate(nrVfAux+1:nrVfAux+nrAddPoints,1:3)=additionalPoints(1:nrAddPoints, 1:3);
 
 % Generate again raster / pc
 [pcFinal, ~, reg_Grid,~, pcToGrid, ~, ~,~,~,~]=...
     linkPointCloudToRaster(pcIntermediate, cell_Size, x_Min, x_Max, y_Min, y_Max);
- 
+ a1=pcFinal;
+ a2=pcToGrid;
 % Transform the point cloud in the final point cloud
 [nrows,ncols]=size(reg_Grid);
 v1=computeAveragePC(nrows, ncols, pcToGrid,pcFinal(:,1));
 v2=computeAveragePC(nrows, ncols, pcToGrid,pcFinal(:,2));
 v3=computeAveragePC(nrows, ncols, pcToGrid,pcFinal(:,3));
 pc_Output= [matrixToColumnVector(v1), matrixToColumnVector(v2), matrixToColumnVector(v3)];
+%disp(pc_Output);
  
-   
 end
 
 
         %% FUNCTIONS USED 
         
         %% Fill gaps
-        function [pts_added, nr_pts]= fillGaps (mat_grid, mat_points_in_cell, xleft, ytop, lung)
+        function [pts_added, nr_pts]= fillGaps (matr_in, mat_points_in_cell, xleft, ytop, lung, val_mean)
 
         %% Description: adds point where needed
 
@@ -74,9 +76,84 @@ end
                     index=index+1;
                     x=xleft+(jj-1)*lung+lung/2;
                     y=ytop-(ii)*lung+lung/2;
+                    %{
                     z=mat_grid(ii-1,jj-1)+mat_grid(ii-1,jj)+mat_grid(ii-1,jj+1)...
                         +mat_grid(ii,jj-1)+mat_grid(ii,jj+1)+mat_grid(ii+1,jj-1)...
                         +mat_grid(ii+1,jj)+mat_grid(ii+1,jj+1); z=z/8; % elevation is mean of the surrounding cells
+                    %}
+                    
+                    %%%%
+                    
+                                            %% Clip the "neighbouring" matrices
+                                delta=1; % for tests, one could consider larger neighbourhouds
+
+                                % (i) Outside borders
+                                    if (ii>1) && (ii<nr) && (jj>1) && (jj<nc)  
+                                        matr_loc=matr_in(ii-delta:ii+delta,jj-delta:jj+delta);
+                                    end
+
+                                % (ii) The borders without corners
+                                    % Upper border, r=1
+                                    if ii==1 && jj~=1 && jj~=nc
+                                       matr_loc=matr_in(ii:ii+delta,jj-delta:jj+delta);
+                                    end
+                                    % Lower border, r=nr
+                                    if ii==nr && jj~=1 && jj~=nc
+                                       matr_loc=matr_in(ii-delta:ii,jj-delta:jj+delta);
+                                    end
+                                    % Left border, c=1
+                                    if jj==1 && ii~=1 && ii~=nr
+                                       matr_loc=matr_in(ii-delta:ii+delta,jj:jj+delta);
+                                    end
+                                    % Right border, c=nc
+                                    if jj==nc && ii~=1 && ii~=nr
+                                       matr_loc=matr_in(ii-delta:ii+delta,jj-delta:jj);
+                                    end     
+
+                                % (iii) The corners
+                                    % Up left
+                                    if ii==1 && jj==1
+                                       matr_loc=matr_in(ii:ii+delta,jj:jj+delta);
+                                    end
+                                    % Up right
+                                    if ii==1 && jj==nc
+                                       matr_loc=matr_in(ii:ii+delta,jj-delta:jj);
+                                    end
+                                    % Down left
+                                    if ii==nr && jj==1
+                                       matr_loc=matr_in(ii-delta:ii,jj:jj+delta);
+                                    end
+                                    % Down right
+                                    if ii==nr && jj==nc
+                                       matr_loc=matr_in(ii-delta:ii,jj-delta:jj);
+                                    end 
+
+                            %% If the central point already has a value
+                            if matr_in(ii,jj)~=-9999
+                                z=matr_in(ii,jj);
+                            end
+
+                            %% If the central point is "NODATA" 
+                            if matr_in(ii,jj)==-9999
+                                % Start analysing the local neighbours
+                                sumaLocal=0;
+                                indexLocal=0;
+                                [randuri,coloane]=size(matr_loc);
+                                for rr=1:randuri
+                                    for cc=1:coloane
+                                        if matr_loc(rr,cc)~=-9999
+                                            indexLocal=indexLocal+1;
+                                            sumaLocal=sumaLocal+matr_loc(rr,cc);
+                                        end
+                                    end
+                                end
+                                if indexLocal~=0
+                                    z=sumaLocal/indexLocal;
+                                else
+                                    z=val_mean;
+                                end
+                            end
+                    %%%%
                     pts_added(index,1)=x;
                     pts_added(index,2)=y;
                     pts_added(index,3)=z;  
