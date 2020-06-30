@@ -25,6 +25,9 @@ for ii=1:nrPoints
 end
 % Mean value
 valh=mean(makeVector(matM(1:nrPoints,2:3)));
+if (valh==0)
+    valh=0.0000001;
+end
 % Modify the matrices and adjust by mean value
 matD=diag([1 valh valh valh^2 valh^2 valh^2]);
 matMprim=matM/matD;
