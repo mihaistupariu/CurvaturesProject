@@ -32,5 +32,5 @@ for vv=1:nr_vf
     % Compute curvatures for the fitted surface
     [GCurv, MCurv] = determineCurvaturesJetFitting(a10, a01, a20, a11, a02);
     V_GC_JF(vv,1)=GCurv;
-    V_MC_JF(vv,1)=MCurv;
+    V_MC_JF(vv,1)=-MCurv;
 end

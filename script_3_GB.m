@@ -27,7 +27,7 @@ for i=1:nr_vf
     V_GC_1(i,1)=(3*V_AD(i,1))/V_area(i,1);
     V_GC_2(i,1)=V_AD(i,1)/V_mixedarea(i,1);
     % MEAN CURVATURES
-    V_MC_1 (i,1)= (3*V_edge_contrib (i,1))/ V_area(i,1);
+    V_MC_1 (i,1)= -(3*V_edge_contrib (i,1))/ V_area(i,1);
     V_MC_2 (i,1)= norm(V_mean_curvature_vector_aux(i,:))/(4*V_mixedarea(i,1));
 end
  

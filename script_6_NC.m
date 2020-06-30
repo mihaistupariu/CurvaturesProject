@@ -48,6 +48,7 @@ for ee=1:nr_edges
             varf1=V(i1,:); varf2=V(i2,:); varf3=V(i3,:); varf4=V(i4,:);
             % sign of the edge
             signofEdge=determineEdgeSign(varf1, varf2, varf3, varf4);
+            dv1dv2=0;
             dv1v2=dot(vect_aux1, vect_aux2);
             % compute the normal deviation 
             if abs(dv1v2)<=1 % this should be a cosine, since both normals are true normals
@@ -136,7 +137,7 @@ for vv=1:nr_vf
           end
       end 
       V_GC_NC_1R(vv,1)=eigenv(1,1)*eigenv(2,1);
-      V_MC_NC_1R(vv,1)=(eigenv(1,1)+eigenv(2,1))/2;
+      V_MC_NC_1R(vv,1)=-(eigenv(1,1)+eigenv(2,1))/2;
 end
 
 % %%%% For the 2-Ring Neighborhood
@@ -154,6 +155,6 @@ for vv=1:nr_vf
           end
       end 
       V_GC_NC_2R(vv,1)=eigenv(1,1)*eigenv(2,1);
-      V_MC_NC_2R(vv,1)=(eigenv(1,1)+eigenv(2,1))/2;
+      V_MC_NC_2R(vv,1)=-(eigenv(1,1)+eigenv(2,1))/2;
 end
 

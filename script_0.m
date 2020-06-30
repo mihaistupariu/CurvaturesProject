@@ -5,8 +5,7 @@
 % topological data
 % The point records can be found in the matrix V. 
 % Columns of V: 1-3 - coordinates
- 
- 
+
 %% Initialization
 [nr_vf,~]=size(V);
 V_convexhull=zeros(nr_vf,1);
