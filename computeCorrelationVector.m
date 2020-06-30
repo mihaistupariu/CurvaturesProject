@@ -2,7 +2,7 @@ function [vect_output1, vect_output2] = computeCorrelationVector(vect_ref, mat_i
 
 
 %% Description
-% Determines the correlations between a given vector of curvatures and
+% This function determines the correlations between a given vector of curvatures and
 % other curvatures
 % Input.
 %   vect_ref: the column corresponding to the reference curvature
