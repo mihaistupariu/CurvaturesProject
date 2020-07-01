@@ -580,6 +580,7 @@ end
  
 %% 2. The case of a smooth surface 
 if (handles.dataType==2)   
+ 
     % Limits
     xMin=handles.Value_xMin;
     xMax=handles.Value_xMax;
@@ -603,7 +604,7 @@ if (handles.dataType==2)
         [~, nc_x]=size(handles.levelNoise_x);
         [~, nc_y]=size(handles.levelNoise_y);
         [~, nc_z]=size(handles.levelNoise_z);
-        if nc_x==1 && nc_y==1 && nc_z==1 && handles.levelNoise_x(1,1)==0 &&  handles.levelNoise_y(1,1)==0 &&  handles.levelNoise_z(1,1)==0
+        if nc_x==1 && nc_y==1 && nc_z==1 && handles.levelNoise_x(1,1)==0 &&  handles.levelNoise_y(1,1)==0 &&  handles.levelNoise_z(1,1)==0  && handles.noiseFromStructure==0
             handles.boolNoise=0;
         else
             handles.boolNoise=1;
@@ -748,11 +749,74 @@ if (handles.dataType==2)
         end
         %% If matrix of noise provided
         if handles.noiseFromStructure==1
-            noiseStructure=handles.noiseStructure;
-            disp(noiseStructure);
+            noiseStructure=handles.noiseStructure; % extract the noise structure
+            maxNoiseLevels=noiseStructure.size; % read number of levels of noise
+            cellSize=levelsResolution(1); % set the size of the cell; take only the one for the first level of resolution
+            [Xorig,Yorig]=meshgrid(xMin:cellSize:xMax,yMin:cellSize:yMax);  % generate 2D mesh, it will be altered for each level of noise
+            %% For each level of amplitude 
+            for noiseLevel=1:maxNoiseLevels
+                    % Extract the noise
+                    matNoise_X=noiseStructure.lev(noiseLevel).x;
+                    matNoise_Y=noiseStructure.lev(noiseLevel).y;
+                    % Add noise to original X Y
+                    X=Xorig+matNoise_X;
+                    Y=Yorig+matNoise_Y;
+                    % Prepare generation of z-values
+                    fid=handles.file_functions;
+                    frewind(fid);
+                    line1=fgetl(fid);
+                    func1=str2func(line1);
+                    regGridOrig=func1(X,Y); 
+                    % Generate z-noise by perturbation of the z-value
+                    matNoise_Z=noiseStructure.lev(noiseLevel).z;
+                    matNoise_Z=regGridOrig.*matNoise_Z;
+                    regGrid=regGridOrig+matNoise_Z;
+                    pcFinal(:,1)=makeVector(X);
+                    pcFinal(:,2)=makeVector(Y);
+                    pcFinal(:,3)=makeVector(regGrid);
+
+                    % Write variables to workspace
+                    strNoiseLevel=num2str(noiseLevel);
+                    assignin('base', ['PointCloud_' strNoiseLevel], pcFinal);
+                    assignin('base', ['Reg_Grid_', strNoiseLevel], regGrid); 
+
+                    % COMPUTE CURVATURES
+                    [GC,MC,vfConvexHull]=computeCurvatures_SS(pcFinal, alphaVector,cellSize, handles.file_functions);
+
+                     % Add curvatures/grid/convex hull to structure 
+                    label=['levelNoise' strNoiseLevel];
+                    structureGC.(matlab.lang.makeValidName(label))=GC;
+                    structureMC.(matlab.lang.makeValidName(label))=MC;
+                    structureRegGrid.(matlab.lang.makeValidName(label))=regGrid;
+                    structureVfConvexHull.(matlab.lang.makeValidName(label))=vfConvexHull;
+
+                    % Write curvatures to workspace
+                    assignin('base', ['GC_' strNoiseLevel], GC);
+                    assignin('base', ['MC_' strNoiseLevel], MC); 
+                    assignin('base', ['vfConvexHull_' strNoiseLevel], vfConvexHull);
+
+
+                     % Write to file if required
+                    if handles.writeToFile==1
+                        fileID = fopen(['GC' strNoiseLevel '.txt'], 'w');
+                        dlmwrite(['GC' strNoiseLevel '.txt'], GC, 'delimiter',' ','precision','% 8.2f')
+                        fclose(fileID);
+
+                        fileID = fopen(['MC' strNoiseLevel '.txt'], 'w');
+                        dlmwrite(['MC' strNoiseLevel '.txt'], MC, 'delimiter',' ','precision','% 8.2f')
+                        fclose(fileID);
+                    end  
+                    %{
+                    assignin('base', ['X_' strNoiseLevel],matNoise_X);
+                    assignin('base', ['Y_' strNoiseLevel], matNoise_Y);
+                    assignin('base', ['regGridOrig_' strNoiseLevel], matNoise_Z);
+                    assignin('base', ['regGrid_' strNoiseLevel], regGrid);
+                    %}
+
+            end 
         end
     end
-
+ 
     % Initialize values for subsequent steps
     handles.GC=structureGC;
     handles.MC=structureMC;
@@ -763,7 +827,7 @@ if (handles.dataType==2)
     handles.aux=zeros(1,8+handles.nrAlphas);
     set(handles.Console, 'string', 'Curvatures computed!');
     guidata(hObject, handles);
-
+ 
 end  
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
@@ -964,36 +1028,64 @@ if handles.boolNoise==0
         clearvars matSelected_GC matSelected_MC
     end
 else
-    % if noise, the levels correspond to the noise amplitudes
-    [~,totNoiseLevels]=size(handles.levelNoise_x);
-    for ll=1:totNoiseLevels % take each level
-        noise_char=['levelNoise' num2str(ll)];
-        GC=structureGC.(matlab.lang.makeValidName(noise_char));
-        MC=structureMC.(matlab.lang.makeValidName(noise_char));
-        regGrid=structureRegGrid.(matlab.lang.makeValidName(noise_char));
-        vfConvexHull=structureVfConvexHull.(matlab.lang.makeValidName(noise_char));
+    if handles.noiseFromStructure==0 % noise from amplitude
+        % if noise, the levels correspond to the noise amplitudes
+        [~,totNoiseLevels]=size(handles.levelNoise_x);
+        for ll=1:totNoiseLevels % take each level
+            noise_char=['levelNoise' num2str(ll)];
+            GC=structureGC.(matlab.lang.makeValidName(noise_char));
+            MC=structureMC.(matlab.lang.makeValidName(noise_char));
+            regGrid=structureRegGrid.(matlab.lang.makeValidName(noise_char));
+            vfConvexHull=structureVfConvexHull.(matlab.lang.makeValidName(noise_char));
 
-        % Set the reference vectors
-        vectReference_GC=GC(:,methodReference);
-        vectReference_MC=MC(:,methodReference);
+            % Set the reference vectors
+            vectReference_GC=GC(:,methodReference);
+            vectReference_MC=MC(:,methodReference);
 
-        % Creates matrices of selected curvatures
-        index=0;
-        for ii=1:8+handles.nrAlphas
-            if handles.chosenMethods(1,ii)==1 || handles.chosenMethods(2,ii)==1
-                index=index+1;
-                matSelected_GC(:,index)=GC(:,ii);
-                matSelected_MC(:,index)=MC(:,ii);
+            % Creates matrices of selected curvatures
+            index=0;
+            for ii=1:8+handles.nrAlphas
+                if handles.chosenMethods(1,ii)==1 || handles.chosenMethods(2,ii)==1
+                    index=index+1;
+                    matSelected_GC(:,index)=GC(:,ii);
+                    matSelected_MC(:,index)=MC(:,ii);
+                end
             end
+            [correlation_GC(ll,:), absError_GC(ll,:)]=computeCorrelationVector(vectReference_GC, matSelected_GC, vfConvexHull);
+            [correlation_MC(ll,:), absError_MC(ll,:)]=computeCorrelationVector(vectReference_MC, matSelected_MC, vfConvexHull);
+            clearvars matSelected_GC matSelected_MC
         end
-        [correlation_GC(ll,:), absError_GC(ll,:)]=computeCorrelationVector(vectReference_GC, matSelected_GC, vfConvexHull);
-        [correlation_MC(ll,:), absError_MC(ll,:)]=computeCorrelationVector(vectReference_MC, matSelected_MC, vfConvexHull);
-        clearvars matSelected_GC matSelected_MC
-        
-        
+    else   % if noise from structure
+        % ithe levels correspond to the noise amplitudes
+        totNoiseLevels=handles.noiseStructure.size;
+        for ll=1:totNoiseLevels % take each level
+            noise_char=['levelNoise' num2str(ll)];
+            GC=structureGC.(matlab.lang.makeValidName(noise_char));
+            MC=structureMC.(matlab.lang.makeValidName(noise_char));
+            regGrid=structureRegGrid.(matlab.lang.makeValidName(noise_char));
+            vfConvexHull=structureVfConvexHull.(matlab.lang.makeValidName(noise_char));
+
+            % Set the reference vectors
+            vectReference_GC=GC(:,methodReference);
+            vectReference_MC=MC(:,methodReference);
+
+            % Creates matrices of selected curvatures
+            index=0;
+            for ii=1:8+handles.nrAlphas
+                if handles.chosenMethods(1,ii)==1 || handles.chosenMethods(2,ii)==1
+                    index=index+1;
+                    matSelected_GC(:,index)=GC(:,ii);
+                    matSelected_MC(:,index)=MC(:,ii);
+                end
+            end
+            [correlation_GC(ll,:), absError_GC(ll,:)]=computeCorrelationVector(vectReference_GC, matSelected_GC, vfConvexHull);
+            [correlation_MC(ll,:), absError_MC(ll,:)]=computeCorrelationVector(vectReference_MC, matSelected_MC, vfConvexHull);
+            clearvars matSelected_GC matSelected_MC
+        end
+ 
+           
     end
 end
-
 
 % Write correlations to workspace
  assignin('base', 'correlation_GC', correlation_GC);
@@ -1006,8 +1098,7 @@ end
  handles.correlation_MC=correlation_MC;
  handles.absError_GC=absError_GC;
  handles.absError_MC=absError_MC; 
-  
-  
+
  % Write to file if required
 if handles.writeToFileCorr==1
     filename='correlation_GC.xlsx';
@@ -1313,14 +1404,21 @@ nume=['handles.' handles.descriptor handles.methodCAE];
 variabila=eval(nume);
 
 if handles.boolNoise==0
-generateGraphicsCorrelations(handles.boolNoise, variabila, handles.levelResol, handles.chosenMethods, handles.alphaVector,handles.drawFigureCorr_AE);    
+    generateGraphicsCorrelations(handles.boolNoise, variabila, handles.levelResol, handles.chosenMethods, handles.alphaVector,handles.drawFigureCorr_AE);    
 else 
-% Add the (x,y,z)-amplitudes as characters
-[~,nrLevelsNoiseCorrGr]=size(handles.levelNoise_x);
-for ii=1:nrLevelsNoiseCorrGr
-   strLevelNoise(1,ii)={['(' num2str(handles.levelNoise_x(1,ii)) ',' num2str(handles.levelNoise_y(1,ii)) ',' num2str(handles.levelNoise_z(1,ii))  ')']};
-end
-generateGraphicsCorrelations(handles.boolNoise, variabila, strLevelNoise, handles.chosenMethods, handles.alphaVector,handles.drawFigureCorr_AE);    
+    if handles.noiseFromStructure==0
+        % Add the (x,y,z)-amplitudes as characters
+        [~,nrLevelsNoiseCorrGr]=size(handles.levelNoise_x);
+        for ii=1:nrLevelsNoiseCorrGr
+           strLevelNoise(1,ii)={['(' num2str(handles.levelNoise_x(1,ii)) ',' num2str(handles.levelNoise_y(1,ii)) ',' num2str(handles.levelNoise_z(1,ii))  ')']};
+        end
+    else
+        % The i-th level corresponds to i
+        for ii=1:handles.noiseStructure.size
+           strLevelNoise(1,ii)={[ num2str(ii) ]};
+        end
+    end
+    generateGraphicsCorrelations(handles.boolNoise, variabila, strLevelNoise, handles.chosenMethods, handles.alphaVector,handles.drawFigureCorr_AE); 
 end
 
 ylabel(handles.ylabel); 
