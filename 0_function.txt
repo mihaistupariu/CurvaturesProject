@@ -1,0 +1,6 @@
+@(X,Y)0.2*sin(X).*sin(Y.^1.5)-0.1*cos(5*X);
+@(X,Y)0.2*cos(X).*sin(Y.^1.5)+0.5*sin(5*X);
+@(X,Y)(0.3*power(Y,0.5)).*sin(X).*cos(Y.^1.5);
+@(X,Y)-0.2*sin(X).*sin(Y.^1.5)+2.5*cos(5*X);
+@(X,Y)(0.3*power(Y,0.5)).*cos(X).*cos(Y.^1.5);
+@(X,Y)(0.15*power(Y,-0.5)).*sin(X).*cos(power(Y,1.5))-0.45*Y.*sin(X).*sin(power(Y,1.5));
