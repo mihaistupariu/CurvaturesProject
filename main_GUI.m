@@ -32,7 +32,7 @@ function varargout = main_GUI(varargin)
 
 % Edit the above text to modify the response to help main_GUI
 
-% Last Modified by GUIDE v2.5 06-Apr-2020 15:35:34
+% Last Modified by GUIDE v2.5 01-Jul-2020 12:28:03
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1432,5 +1432,3 @@ function popupmenu10_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
